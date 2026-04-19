@@ -166,6 +166,12 @@ export function useDeepgram({
       wsRef.current = null;
     }
   }, []);
+  
+  const sendSystemMessage = useCallback((text: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "system_turn", text }));
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -173,5 +179,5 @@ export function useDeepgram({
     };
   }, [disconnect]);
 
-  return { isConnected, connect, disconnect };
+  return { isConnected, connect, disconnect, sendSystemMessage };
 }

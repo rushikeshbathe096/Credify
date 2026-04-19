@@ -91,7 +91,7 @@ export default function CallPage() {
     console.error("[Call] Error:", msg);
   }, []);
 
-  const { isConnected, connect, disconnect } = useDeepgram({
+  const { isConnected, connect, disconnect, sendSystemMessage } = useDeepgram({
     sessionId,
     onTranscript,
     onAgentToken,
@@ -205,18 +205,17 @@ export default function CallPage() {
         <div className="flex flex-col gap-4 lg:w-1/2 min-h-0 relative">
           <UserCamera />
 
-          {/* Phase 3: Aadhaar Overlay - positioned over the camera area */}
           {showAadhaarOverlay && sessionId && (
             <AadhaarOverlay
               sessionId={sessionId}
               onVerified={(fields) => {
                 setAadhaarFields(fields);
                 setShowAadhaarOverlay(false);
-                // Add system confirmation message
                 setMessages((prev) => [
                   ...prev,
                   { role: "system", text: "✓ Aadhaar verified successfully" },
                 ]);
+                sendSystemMessage("Aadhaar verified successfully. Move to next step.");
               }}
               onSkip={() => {
                 setShowAadhaarOverlay(false);
@@ -224,6 +223,7 @@ export default function CallPage() {
                   ...prev,
                   { role: "system", text: "⏭ Aadhaar verification skipped" },
                 ]);
+                sendSystemMessage("Aadhaar verification skipped. Move to next step.");
               }}
             />
           )}

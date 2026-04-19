@@ -142,6 +142,21 @@ async def websocket_transcribe(ws: WebSocket, session_id: str):
                     msg = json.loads(data["text"])
                     if msg.get("type") == "ping":
                         await ws.send_json({"type": "pong"})
+                    elif msg.get("type") == "system_turn":
+                        # Push synthetic user message directly into agent
+                        sys_text = msg.get("text", "")
+                        logger.info("Session %s SYSTEM TURN: %s", session_id, sys_text)
+                        
+                        # Save to MongoDB as a user/system action so it persists
+                        if mongo.transcripts_col is not None:
+                            await mongo.transcripts_col.insert_one({
+                                "session_id": session_id,
+                                "speaker": "user",
+                                "text": "[SYSTEM AUTOMATED INPUT] " + sys_text,
+                                "timestamp": datetime.now(timezone.utc),
+                            })
+                            
+                        asyncio.create_task(agent.turn("SYSTEM MESSAGE: " + sys_text, ws))
 
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected: session %s", session_id)

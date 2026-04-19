@@ -26,7 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(sessions.router, prefix="/api/sessions")
-app.include_router(transcription.router, prefix="/api")
+app.include_router(transcription.router)
 app.include_router(cv.router, prefix="/api/cv")
 app.include_router(dashboard.router, prefix="/api/dashboard")
 

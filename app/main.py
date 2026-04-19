@@ -1,23 +1,41 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uuid
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+from app.routers import sessions, transcription, cv, dashboard
+from app.db.mongo import connect_db, close_db, ping_db
 
-# Allow all origins, methods, and headers for development
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await connect_db()
+    yield
+    # Shutdown
+    await close_db()
+
+
+app = FastAPI(title="Credify AI", lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["http://localhost:3000", "https://*.vercel.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+app.include_router(sessions.router, prefix="/api/sessions")
+app.include_router(transcription.router, prefix="/api")
+app.include_router(cv.router, prefix="/api/cv")
+app.include_router(dashboard.router, prefix="/api/dashboard")
 
-@app.post("/start-session")
-def start_session():
-    return {"session_id": str(uuid.uuid4())}
+
+@app.get("/health")
+async def health():
+    db_ok = await ping_db()
+    return {
+        "status": "ok",
+        "service": "credify",
+        "db": "connected" if db_ok else "disconnected",
+    }

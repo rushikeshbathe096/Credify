@@ -6,12 +6,12 @@ import random
 logger = logging.getLogger(__name__)
 
 MOCK_PROFILES = [
-    {
-        "name": "Rahul Chaturvedi",
-        "dob": "2004-09-30",
-        "gender": "M",
-        "uid_last4": "9438",
-        "extraction_confidence": "high"
+    { 
+        "name": "Rajan Sharma", 
+        "dob": "1996-08-14", 
+        "gender": "M", 
+        "uid_last4": "4821",  
+        "extraction_confidence": "high" 
     }
 ]
 

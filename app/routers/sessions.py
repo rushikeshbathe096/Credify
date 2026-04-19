@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from jose import jwt
 
 from app.config import settings
-from app.db.mongo import sessions_col, audit_logs_col
+import app.db.mongo as mongo
 
 router = APIRouter()
 
@@ -22,6 +22,7 @@ def _create_token(session_id: str) -> str:
 
 async def _audit(session_id: str, event: str, payload: dict | None = None):
     """Insert an audit log entry."""
+    from app.db.mongo import audit_logs_col
     await audit_logs_col.insert_one(
         {
             "session_id": session_id,
@@ -35,6 +36,7 @@ async def _audit(session_id: str, event: str, payload: dict | None = None):
 # ── POST /api/sessions/create ──────────────────────────────
 @router.post("/create")
 async def create_session(request: Request):
+    from app.db.mongo import sessions_col
     session_id = str(uuid.uuid4())
     token = _create_token(session_id)
 
@@ -57,6 +59,7 @@ async def create_session(request: Request):
 # ── POST /api/sessions/{session_id}/start ───────────────────
 @router.post("/{session_id}/start")
 async def start_session(session_id: str):
+    from app.db.mongo import sessions_col
     result = await sessions_col.update_one(
         {"_id": session_id},
         {"$set": {"status": "active", "started_at": datetime.utcnow()}},
@@ -71,6 +74,7 @@ async def start_session(session_id: str):
 # ── POST /api/sessions/{session_id}/close ───────────────────
 @router.post("/{session_id}/close")
 async def close_session(session_id: str):
+    from app.db.mongo import sessions_col
     result = await sessions_col.update_one(
         {"_id": session_id},
         {"$set": {"status": "closed", "closed_at": datetime.utcnow()}},
@@ -85,6 +89,7 @@ async def close_session(session_id: str):
 # ── GET /api/sessions/{session_id} ──────────────────────────
 @router.get("/{session_id}")
 async def get_session(session_id: str):
+    from app.db.mongo import sessions_col
     doc = await sessions_col.find_one({"_id": session_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Session not found")

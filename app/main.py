@@ -4,16 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.routers import sessions, transcription, cv, dashboard
-from app.db.mongo import connect_db, close_db, ping_db
-
-
+from app.db.mongo import connect_to_mongo, close_mongo_connection, ping_db
+from app.config import settings
+print("Loaded Mongo URL:", settings.MONGODB_URL)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await connect_db()
+    await connect_to_mongo()
     yield
     # Shutdown
-    await close_db()
+    await close_mongo_connection()
 
 
 app = FastAPI(title="Credify AI", lifespan=lifespan)

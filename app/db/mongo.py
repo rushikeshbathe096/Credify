@@ -8,14 +8,14 @@ logger = logging.getLogger(__name__)
 client: AsyncIOMotorClient = None  # type: ignore
 db = None
 
-# Collection references (initialised in connect_db)
+# Collection references (initialised in connect_to_mongo)
 sessions_col = None
 transcripts_col = None
 applications_col = None
 audit_logs_col = None
 
 
-async def connect_db():
+async def connect_to_mongo():
     """Initialise the Motor client and bind collection references."""
     global client, db, sessions_col, transcripts_col, applications_col, audit_logs_col
 
@@ -26,6 +26,7 @@ async def connect_db():
         )
         # Force a connection check
         await client.admin.command("ping")
+        print("MongoDB connected successfully")
         logger.info("✅ MongoDB connected")
     except Exception as e:
         logger.warning(f"⚠️  MongoDB not reachable: {e}. Server will start without DB.")
@@ -39,7 +40,7 @@ async def connect_db():
         audit_logs_col = db["audit_logs"]
 
 
-async def close_db():
+async def close_mongo_connection():
     """Gracefully close the Motor client."""
     global client
     if client:

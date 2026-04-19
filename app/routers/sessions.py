@@ -74,7 +74,7 @@ async def start_session(session_id: str):
 # ── POST /api/sessions/{session_id}/close ───────────────────
 @router.post("/{session_id}/close")
 async def close_session(session_id: str):
-    from app.db.mongo import sessions_col
+    from app.db.mongo import sessions_col, transcripts_col
     result = await sessions_col.update_one(
         {"_id": session_id},
         {"$set": {"status": "closed", "closed_at": datetime.utcnow()}},
@@ -83,7 +83,66 @@ async def close_session(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
 
     await _audit(session_id, "session_closed")
-    return {"status": "closed"}
+
+    # Fetch all user transcripts
+    user_cursor = transcripts_col.find({"session_id": session_id, "speaker": "user"}).sort("timestamp", 1)
+    user_transcripts = await user_cursor.to_list(length=None)
+    transcript_text = "\n".join([doc["text"] for doc in user_transcripts])
+
+    # Extract fields
+    from app.services.extractor import extract_application_fields
+    extracted_fields = await extract_application_fields(transcript_text)
+    
+    # Fetch session to get Aadhaar state
+    session = await sessions_col.find_one({"_id": session_id})
+    existing_fields = session.get("fields", {})
+    
+    doc_verified = False
+    if "doc_verified" in existing_fields:
+        # Assuming the structure is {"value": True, "confidence": 1.0}
+        doc_verified = existing_fields["doc_verified"].get("value", False)
+        
+    merged_fields = {**existing_fields, **extracted_fields}
+    
+    # Compute Risk and Generate Offer
+    from app.services.risk import compute_risk, generate_offer
+    risk = compute_risk(merged_fields, doc_verified)
+    offer = generate_offer(merged_fields, risk)
+    
+    # Save back to MongoDB
+    await sessions_col.update_one(
+        {"_id": session_id},
+        {"$set": {
+            "fields": merged_fields,
+            "risk_score": risk["score"],
+            "decision": risk["decision"],
+            "risk_reasons": risk["reasons"],
+            "offer": offer
+        }}
+    )
+
+    return {"status": "closed", "offer_generated": True}
+
+# ── GET /api/sessions/{session_id}/offer ──────────────────────
+@router.get("/{session_id}/offer")
+async def get_offer(session_id: str):
+    from app.db.mongo import sessions_col
+    doc = await sessions_col.find_one({"_id": session_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+        
+    if "offer" not in doc:
+        raise HTTPException(status_code=400, detail="Offer not ready")
+        
+    return {
+        "offer": doc["offer"],
+        "risk": {
+            "score": doc.get("risk_score"),
+            "decision": doc.get("decision"),
+            "reasons": doc.get("risk_reasons")
+        },
+        "fields": doc.get("fields", {})
+    }
 
 
 # ── GET /api/sessions/{session_id} ──────────────────────────

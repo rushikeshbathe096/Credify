@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 interface Message {
-  role: "user" | "agent";
+  role: "user" | "agent" | "system";
   text: string;
 }
 
@@ -28,27 +28,35 @@ export default function TranscriptFeed({ messages }: TranscriptFeedProps) {
         </div>
       )}
 
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-        >
-          <div
-            className={`
-              max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed
-              ${msg.role === "user"
-                ? "bg-[#00B4D8]/15 text-[#E2E8F0] rounded-br-md border border-[#00B4D8]/20"
-                : "bg-white/5 text-[#CBD5E1] rounded-bl-md border border-white/10"
-              }
-            `}
-          >
-            <span className="block text-[10px] font-semibold uppercase tracking-wider mb-1 opacity-50">
-              {msg.role === "user" ? "You" : "Credify AI"}
-            </span>
-            {msg.text}
+      {messages.map((msg, i) =>
+        msg.role === "system" ? (
+          <div key={i} className="flex justify-center">
+            <div className="px-4 py-2 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              {msg.text}
+            </div>
           </div>
-        </div>
-      ))}
+        ) : (
+          <div
+            key={i}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`
+                max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed
+                ${msg.role === "user"
+                  ? "bg-[#00B4D8]/15 text-[#E2E8F0] rounded-br-md border border-[#00B4D8]/20"
+                  : "bg-white/5 text-[#CBD5E1] rounded-bl-md border border-white/10"
+                }
+              `}
+            >
+              <span className="block text-[10px] font-semibold uppercase tracking-wider mb-1 opacity-50">
+                {msg.role === "user" ? "You" : "Credify AI"}
+              </span>
+              {msg.text}
+            </div>
+          </div>
+        )
+      )}
 
       <div ref={bottomRef} />
     </div>

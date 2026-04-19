@@ -49,7 +49,7 @@ export default function UserCamera() {
         autoPlay
         playsInline
         muted
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover user-camera-video"
       />
       {/* Live badge */}
       <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full">

@@ -10,10 +10,20 @@ import UserCamera from "@/components/UserCamera";
 import AgentPanel from "@/components/AgentPanel";
 import TranscriptFeed from "@/components/TranscriptFeed";
 import ProgressBar from "@/components/ProgressBar";
+import AadhaarOverlay from "@/components/AadhaarOverlay";
 
 interface Message {
-  role: "user" | "agent";
+  role: "user" | "agent" | "system";
   text: string;
+}
+
+interface AadhaarFields {
+  name?: string | null;
+  dob?: string | null;
+  gender?: string | null;
+  uid_last4?: string | null;
+  address_city?: string | null;
+  extraction_confidence?: string;
 }
 
 export default function CallPage() {
@@ -25,6 +35,10 @@ export default function CallPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentState, setCurrentState] = useState("intro");
   const [isEnding, setIsEnding] = useState(false);
+
+  // Phase 3: Aadhaar overlay state
+  const [showAadhaarOverlay, setShowAadhaarOverlay] = useState(false);
+  const [aadhaarFields, setAadhaarFields] = useState<AadhaarFields | null>(null);
 
   // Use a ref to accumulate streaming text (avoids stale closure issues)
   const agentBufferRef = useRef("");
@@ -66,6 +80,11 @@ export default function CallPage() {
 
   const onStateChange = useCallback((msg: { state: string }) => {
     setCurrentState(msg.state);
+
+    // Phase 3: Trigger Aadhaar overlay when entering documents state
+    if (msg.state === "documents") {
+      setShowAadhaarOverlay(true);
+    }
   }, []);
 
   const onError = useCallback((msg: string) => {
@@ -181,10 +200,34 @@ export default function CallPage() {
       </header>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 lg:p-6 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 lg:p-6 overflow-hidden relative">
         {/* LEFT: Camera + Transcript */}
-        <div className="flex flex-col gap-4 lg:w-1/2 min-h-0">
+        <div className="flex flex-col gap-4 lg:w-1/2 min-h-0 relative">
           <UserCamera />
+
+          {/* Phase 3: Aadhaar Overlay - positioned over the camera area */}
+          {showAadhaarOverlay && sessionId && (
+            <AadhaarOverlay
+              sessionId={sessionId}
+              onVerified={(fields) => {
+                setAadhaarFields(fields);
+                setShowAadhaarOverlay(false);
+                // Add system confirmation message
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "system", text: "✓ Aadhaar verified successfully" },
+                ]);
+              }}
+              onSkip={() => {
+                setShowAadhaarOverlay(false);
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "system", text: "⏭ Aadhaar verification skipped" },
+                ]);
+              }}
+            />
+          )}
+
           <div className="flex-1 bg-[#0A1628] rounded-2xl border border-white/10 p-4 overflow-hidden flex flex-col min-h-[200px]">
             <h3 className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-3">
               Conversation
@@ -203,6 +246,36 @@ export default function CallPage() {
             currentState={currentState}
           />
           <ProgressBar currentState={currentState} />
+
+          {/* Aadhaar fields summary (shows after verification) */}
+          {aadhaarFields && (
+            <div className="bg-[#0A1628] rounded-2xl border border-emerald-500/20 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </span>
+                <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+                  Aadhaar Verified
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {aadhaarFields.name && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[#64748B]">Name</span>
+                    <span className="text-[#CBD5E1]">{String(aadhaarFields.name)}</span>
+                  </div>
+                )}
+                {aadhaarFields.uid_last4 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[#64748B]">Aadhaar</span>
+                    <span className="text-[#CBD5E1]">•••• {String(aadhaarFields.uid_last4)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Session info */}
           <div className="bg-[#0A1628] rounded-2xl border border-white/10 p-4">

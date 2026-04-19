@@ -11,7 +11,6 @@ MOCK_PROFILES = [
         "dob": "2004-09-30",
         "gender": "M",
         "uid_last4": "9438",
-        "address_city": "Mumbai",
         "extraction_confidence": "high"
     }
 ]

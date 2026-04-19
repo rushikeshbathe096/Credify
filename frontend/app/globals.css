@@ -2,20 +2,191 @@
 
 :root {
   --background: #050D1E;
-  --foreground: #E2E8F0;
-  --accent: #6366F1;
-  --accent-glow: rgba(99, 102, 241, 0.15);
+  --panel: rgba(13, 31, 56, 0.7);
+  --foreground: #F1F5F9;
+  --accent: #00E5FF;
+  --accent-glow: rgba(0, 229, 255, 0.4);
+  --success: #00D4A0;
+  --success-glow: rgba(0, 212, 160, 0.4);
+  --credify-navy: #050D1E;
+  --credify-cyan: #00E5FF;
+  --credify-blue: #3B82F6;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-panel: var(--panel);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-credify-navy: var(--credify-navy);
+  --color-credify-cyan: var(--credify-cyan);
+  --color-credify-blue: var(--credify-blue);
   --font-sans: var(--font-inter);
+
+  --blur-xs: 2px;
+  --blur-3xl: 64px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+@layer base {
+  body {
+    @apply bg-background text-slate-200 antialiased selection:bg-accent/30 selection:text-white;
+    font-feature-settings: "ss01", "ss03", "cv08", "cv11";
+  }
+}
+
+@layer components {
+  .aurora-bg {
+    @apply fixed inset-0 -z-10 overflow-hidden pointer-events-none;
+    background: radial-gradient(circle at 50% 50%, #050D1E 0%, #020617 100%);
+  }
+
+  .aurora-blob {
+    @apply absolute rounded-full blur-[120px] opacity-20 mix-blend-plus-lighter;
+    animation: aurora-float 20s ease-in-out infinite;
+  }
+
+  .spatial-card {
+    @apply backdrop-blur-3xl saturate-200 border border-white/10 transition-all duration-700;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .spatial-card:hover {
+    @apply border-accent/30;
+    box-shadow: 0 0 50px rgba(0, 180, 216, 0.15);
+  }
+
+  .glass-card-premium {
+    @apply backdrop-blur-3xl saturate-200 border border-white/10 transition-all duration-700 rounded-[2.5rem] p-8;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card-premium:hover {
+    @apply border-accent/30;
+    box-shadow: 0 0 50px rgba(0, 180, 216, 0.15);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 15px var(--accent-glow);
+  }
+
+  .shadow-glow-accent {
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+
+  .shadow-glow-success {
+    box-shadow: 0 0 30px var(--success-glow);
+  }
+}
+
+@keyframes aurora-float {
+  0% {
+    transform: translate(-10%, -10%) rotate(0deg) scale(1);
+  }
+
+  33% {
+    transform: translate(15%, 25%) rotate(120deg) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-15%, 15%) rotate(240deg) scale(0.9);
+  }
+
+  100% {
+    transform: translate(-10%, -10%) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes orb-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 10px var(--accent-glow));
+  }
+
+  50% {
+    transform: scale(1.08);
+    filter: brightness(1.2) drop-shadow(0 0 25px var(--accent));
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 10px var(--accent-glow));
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes soft-pulse {
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.35;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-orb {
+  animation: orb-pulse 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 4s ease-in-out infinite;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 180, 216, 0.15);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 180, 216, 0.3);
 }

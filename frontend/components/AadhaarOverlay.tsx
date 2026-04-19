@@ -8,7 +8,6 @@ interface AadhaarFields {
   dob?: string | null;
   gender?: string | null;
   uid_last4?: string | null;
-  address_city?: string | null;
   extraction_confidence?: string;
 }
 
@@ -335,14 +334,6 @@ export default function AadhaarOverlay({
                       <span className="text-[#64748B]">Aadhaar</span>
                       <span className="text-[#CBD5E1] font-medium">
                         •••• •••• {String(extractedFields.uid_last4)}
-                      </span>
-                    </div>
-                  )}
-                  {extractedFields.address_city && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#64748B]">City</span>
-                      <span className="text-[#CBD5E1] font-medium">
-                        {String(extractedFields.address_city)}
                       </span>
                     </div>
                   )}

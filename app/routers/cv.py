@@ -64,10 +64,6 @@ async def verify_document(session_id: str, frame: UploadFile = File(...)):
             "value": extracted.get("uid_last4"),
             "confidence": confidence_score,
         },
-        "fields.aadhaar_city": {
-            "value": extracted.get("address_city"),
-            "confidence": confidence_score,
-        },
         "fields.doc_verified": {
             "value": is_verified,
             "confidence": 1.0,

@@ -22,6 +22,7 @@ interface UseDeepgramOptions {
   onTranscript: (msg: TranscriptMessage) => void;
   onAgentToken: (msg: AgentTokenMessage) => void;
   onStateChange: (msg: StateChangeMessage) => void;
+  onCallEnded?: () => void;
   onError?: (msg: string) => void;
 }
 
@@ -30,6 +31,7 @@ export function useDeepgram({
   onTranscript,
   onAgentToken,
   onStateChange,
+  onCallEnded,
   onError,
 }: UseDeepgramOptions) {
   const wsRef = useRef<WebSocket | null>(null);
@@ -40,11 +42,13 @@ export function useDeepgram({
   const onTranscriptRef = useRef(onTranscript);
   const onAgentTokenRef = useRef(onAgentToken);
   const onStateChangeRef = useRef(onStateChange);
+  const onCallEndedRef = useRef(onCallEnded);
   const onErrorRef = useRef(onError);
 
   onTranscriptRef.current = onTranscript;
   onAgentTokenRef.current = onAgentToken;
   onStateChangeRef.current = onStateChange;
+  onCallEndedRef.current = onCallEnded;
   onErrorRef.current = onError;
 
   const connect = useCallback(() => {
@@ -80,6 +84,9 @@ export function useDeepgram({
             break;
           case "state_change":
             onStateChangeRef.current(data.payload);
+            break;
+          case "call_ended":
+            onCallEndedRef.current?.();
             break;
           case "error":
             onErrorRef.current?.(data.payload.message);
@@ -166,7 +173,7 @@ export function useDeepgram({
       wsRef.current = null;
     }
   }, []);
-  
+
   const sendSystemMessage = useCallback((text: string) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: "system_turn", text }));

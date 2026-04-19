@@ -139,14 +139,43 @@ def generate_offer(fields: dict, risk: dict) -> dict:
         }
 
     # EMI Calculation: E = P * r * (1+r)^n / ((1+r)^n - 1)
+    # Target EMI: 17.5% of monthly income
+    target_emi = 0.175 * income
     monthly_rate = (rate / 100.0) / 12.0
-    power = (1 + monthly_rate) ** tenure_months
-    emi = principal * monthly_rate * power / (power - 1)
+    
+    import math
+    
+    if principal > 0 and target_emi > principal * monthly_rate:
+        # n = log(E / (E - P*r)) / log(1 + r)
+        k = target_emi / (principal * monthly_rate)
+        tenure_months = math.log(k / (k - 1)) / math.log(1 + monthly_rate)
+        tenure_months = int(round(tenure_months))
+        
+        # Clamp tenure between 6 and 84 months (typical loan terms)
+        if tenure_months > 84:
+            tenure_months = 84
+        elif tenure_months < 6:
+            tenure_months = 6
+            
+        # Recalculate EMI based on fixed tenure to be precise
+        power = (1 + monthly_rate) ** tenure_months
+        emi = principal * monthly_rate * power / (power - 1)
+    elif principal > 0:
+        # If target EMI is too low, reduce principal or max out tenure
+        tenure_months = 84
+        power = (1 + monthly_rate) ** tenure_months
+        # Principal they can afford at target_emi for max tenure
+        affordable_principal = target_emi * (power - 1) / (monthly_rate * power)
+        principal = min(principal, affordable_principal)
+        emi = target_emi
+    else:
+        emi = 0
+        tenure_months = 0
 
     return {
         "principal": int(principal),
         "rate": rate,
         "emi": int(emi),
-        "tenure": tenure_months,
+        "tenure": int(tenure_months),
         "status": "Approved" if decision == "Approve" else "Under Review"
     }

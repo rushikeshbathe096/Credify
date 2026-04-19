@@ -91,13 +91,6 @@ export default function CallPage() {
     console.error("[Call] Error:", msg);
   }, []);
 
-  const { isConnected, connect, disconnect, sendSystemMessage } = useDeepgram({
-    sessionId,
-    onTranscript,
-    onAgentToken,
-    onStateChange,
-    onError,
-  });
 
   // On mount: start session and connect WebSocket
   useEffect(() => {
@@ -141,6 +134,15 @@ export default function CallPage() {
       setIsEnding(false);
     }
   };
+
+  const { isConnected, connect, disconnect, sendSystemMessage } = useDeepgram({
+    sessionId,
+    onTranscript,
+    onAgentToken,
+    onStateChange,
+    onCallEnded: handleEndCall,
+    onError,
+  });
 
   // ── Invalid session screen ──────────────────────────────
   if (!isValid) {

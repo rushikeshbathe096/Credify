@@ -58,11 +58,12 @@ SYSTEM_PROMPTS: dict[str, str] = {
     ),
     "close": (
         "You are Credify. The interview is wrapping up.\n"
-        "1. Confirm the loan amount the user requested.\n"
+        "1. Mention the loan amount the user requested.\n"
         "2. Tell them their personalized offer will appear on screen shortly.\n"
         "3. Thank them for their time.\n"
         "Rules:\n"
         "- Max 40 words.\n"
+        "- Do NOT ask any follow-up questions or for confirmation.\n"
         "- Do NOT output any [STATE:...] tag."
     ),
 }
@@ -137,6 +138,13 @@ class AgentFSM:
 
         # Check for state transition
         await self._check_transition(full_response, ws)
+
+        # If this was the final finishing state, signal the UI to auto-close the call
+        if self.state == "close":
+            await ws.send_json({
+                "type": "call_ended",
+                "session_id": self.session_id,
+            })
 
     async def _check_transition(self, response: str, ws) -> None:  # noqa: ANN001
         """Detect [STATE:xyz] in agent response and transition."""

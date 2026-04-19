@@ -7,35 +7,11 @@ logger = logging.getLogger(__name__)
 
 MOCK_PROFILES = [
     {
-        "name": "Rajan Sharma",
-        "dob": "1996-08-14",
+        "name": "Rahul Chaturvedi",
+        "dob": "2004-09-30",
         "gender": "M",
-        "uid_last4": "4821",
+        "uid_last4": "9438",
         "address_city": "Mumbai",
-        "extraction_confidence": "high"
-    },
-    {
-        "name": "Priya Patel",
-        "dob": "1992-03-22",
-        "gender": "F",
-        "uid_last4": "9384",
-        "address_city": "Ahmedabad",
-        "extraction_confidence": "high"
-    },
-    {
-        "name": "Amit Kumar",
-        "dob": "1988-11-05",
-        "gender": "M",
-        "uid_last4": "1122",
-        "address_city": "Delhi",
-        "extraction_confidence": "high"
-    },
-    {
-        "name": "Sneha Gupta",
-        "dob": "1999-01-30",
-        "gender": "F",
-        "uid_last4": "7756",
-        "address_city": "Bangalore",
         "extraction_confidence": "high"
     }
 ]
